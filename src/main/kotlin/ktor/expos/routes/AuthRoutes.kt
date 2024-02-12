@@ -17,6 +17,7 @@ import ktor.expos.security.hashing.SaltedHash
 import ktor.expos.security.token.TokenClaim
 import ktor.expos.security.token.TokenConfig
 import ktor.expos.security.token.TokenService
+import ktor.expos.services.ServiceHelpers.getUserIdFromToken
 import org.apache.commons.codec.digest.DigestUtils
 
 /*
@@ -128,8 +129,7 @@ fun Route.authenticate(){
 fun Route.getSecretInfo(){
     authenticate{
         get("secret"){
-            val principal = call.principal<JWTPrincipal>()
-            val userId = principal?.getClaim("userId", String::class)
+            val userId = getUserIdFromToken(call)
             call.respond(HttpStatusCode.OK, "Your userId is $userId")
         }
     }

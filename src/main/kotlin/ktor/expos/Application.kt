@@ -3,6 +3,7 @@ package ktor.expos
 import io.ktor.server.application.*
 import ktor.expos.plugins.*
 import ktor.expos.data.db.BankAppDatabase
+import ktor.expos.data.models.account_models.MongoAccountDataSource
 import ktor.expos.data.models.user_models.MongoUserDataSource
 import ktor.expos.security.hashing.SHA256HashingService
 import ktor.expos.security.token.JwtTokenService
@@ -15,6 +16,7 @@ fun main(args: Array<String>) {
 fun Application.module() {
 
     val userDataSource = MongoUserDataSource(BankAppDatabase.database)
+    val accountDataSource = MongoAccountDataSource(BankAppDatabase.database)
     val tokenService = JwtTokenService()
     val tokenConfig = TokenConfig(
         issuer = environment.config.property("jwt.issuer").getString(),
@@ -28,5 +30,5 @@ fun Application.module() {
 
     configureSerialization()
     configureSecurity(tokenConfig)
-    configureRouting(userDataSource, hashingService, tokenService, tokenConfig)
+    configureRouting(userDataSource, accountDataSource, hashingService, tokenService, tokenConfig)
 }
