@@ -3,8 +3,8 @@ package ktor.expos
 import io.ktor.server.application.*
 import ktor.expos.plugins.*
 import ktor.expos.data.db.BankAppDatabase
-import ktor.expos.data.models.account_models.MongoAccountDataSource
-import ktor.expos.data.models.user_models.MongoUserDataSource
+import ktor.expos.modules.account.daos.MongoAccountDataSource
+import ktor.expos.modules.user.daos.MongoUserDataSource
 import ktor.expos.security.hashing.SHA256HashingService
 import ktor.expos.security.token.JwtTokenService
 import ktor.expos.security.token.TokenConfig

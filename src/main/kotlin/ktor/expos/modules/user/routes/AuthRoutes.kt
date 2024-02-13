@@ -1,17 +1,17 @@
-package ktor.expos.routes
+package ktor.expos.modules.user.routes
 
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import ktor.expos.data.models.requests.SignInRequest
-import ktor.expos.data.models.requests.SignUpRequest
-import ktor.expos.data.models.responses.AuthResponse
-import ktor.expos.data.models.user_models.UserData
-import ktor.expos.data.models.user_models.UserDataSource
+import ktor.expos.data.models.BankAppResponseData
+import ktor.expos.modules.user.models.requests.SignInRequest
+import ktor.expos.modules.user.models.requests.SignUpRequest
+import ktor.expos.modules.user.models.responses.AuthResponse
+import ktor.expos.modules.user.models.responses.UserData
+import ktor.expos.modules.user.daos.UserDataSource
 import ktor.expos.security.hashing.HashingService
 import ktor.expos.security.hashing.SaltedHash
 import ktor.expos.security.token.TokenClaim
@@ -32,7 +32,7 @@ fun Route.signUp(
 ){
     post ("signup"){
         val request = call.receiveOrNull<SignUpRequest>() ?: kotlin.run {
-            call.respond(HttpStatusCode.BadRequest)
+            call.respond(HttpStatusCode.BadRequest, BankAppResponseData(true, HttpStatusCode.BadRequest.value, HttpStatusCode.BadRequest.description, "request cannot be null"))
             return@post
         }
 
@@ -40,8 +40,13 @@ fun Route.signUp(
         val isPwTooShort = request.password.length < 8
         //you could also run other validation checks here
 
-        if (areFieldsBlank || isPwTooShort){
-            call.respond(HttpStatusCode.Conflict)
+        //change these errors to enum
+        if (areFieldsBlank ){
+            call.respond(HttpStatusCode.Conflict, BankAppResponseData(false, HttpStatusCode.Conflict.value, HttpStatusCode.Conflict.description, "fields cannot be blank"))
+            return@post
+        }
+        if (isPwTooShort){
+            call.respond(HttpStatusCode.Conflict, BankAppResponseData(false, HttpStatusCode.Conflict.value, HttpStatusCode.Conflict.description, "password is too short. Must be at least 8 characters"))
             return@post
         }
         val saltedHash = hashingService.generateSaltedHash(request.password)
@@ -53,11 +58,11 @@ fun Route.signUp(
 
         val wasAcknowledged = userDataSource.insertUser(user)
         if (!wasAcknowledged){
-            call.respond(HttpStatusCode.Conflict)
+            call.respond(HttpStatusCode.Conflict, BankAppResponseData(false, HttpStatusCode.Conflict.value, HttpStatusCode.Conflict.description, "problem occurred with user creation"))
             return@post
         }
 
-        call.respond(HttpStatusCode.OK)
+        call.respond(HttpStatusCode.OK, BankAppResponseData(true, HttpStatusCode.OK.value, HttpStatusCode.OK.description, "user created successfully"))
     }
 }
 
@@ -70,13 +75,13 @@ fun Route.signIn(hashingService: HashingService,
 ){
     post("signin"){
         val request = call.receiveOrNull<SignInRequest>() ?: kotlin.run {
-            call.respond(HttpStatusCode.BadRequest)
+            call.respond(HttpStatusCode.BadRequest, BankAppResponseData(false, HttpStatusCode.BadRequest.value, HttpStatusCode.BadRequest.description, "request cannot be null"))
             return@post
         }
 
         val user = userDataSource.getUserByUsername(request.username)
         if (user == null) {
-            call.respond(HttpStatusCode.Conflict, "user does not exist")
+            call.respond(HttpStatusCode.Conflict, BankAppResponseData(false, HttpStatusCode.Conflict.value, HttpStatusCode.Conflict.description, "incorrect username or password"))
             return@post
         }
 
@@ -89,7 +94,7 @@ fun Route.signIn(hashingService: HashingService,
         )
         if (!isValidPassword){
             println("Entered hash: ${DigestUtils.sha256Hex("${user.salt}${request.password}")}, Hashed PW: ${user.userPassword}")
-            call.respond(HttpStatusCode.Conflict, "incorrect username or password")
+            call.respond(HttpStatusCode.Conflict, BankAppResponseData(false, HttpStatusCode.Conflict.value, HttpStatusCode.Conflict.description, "incorrect username or password"))
             return@post
         }
 
@@ -101,11 +106,13 @@ fun Route.signIn(hashingService: HashingService,
             )
         )
 
+        val tokenResponse = AuthResponse(
+            token = token
+        )
         call.respond(
-            status = HttpStatusCode.OK,
-            message = AuthResponse(
-                token = token
-            )
+            HttpStatusCode.OK,
+            BankAppResponseData(true, HttpStatusCode.OK.value, HttpStatusCode.OK.description, tokenResponse)
+
         )
 
     }
@@ -118,7 +125,7 @@ fun Route.authenticate(){
     //use our default authentication function to carry out the logic
     authenticate {
         get("authenticate"){
-            call.respond(HttpStatusCode.OK)
+            call.respond(HttpStatusCode.OK, BankAppResponseData(true, HttpStatusCode.OK.value, HttpStatusCode.OK.description, "valid"))
         }
     }
 }
@@ -130,7 +137,8 @@ fun Route.getSecretInfo(){
     authenticate{
         get("secret"){
             val userId = getUserIdFromToken(call)
-            call.respond(HttpStatusCode.OK, "Your userId is $userId")
+            call.respond(HttpStatusCode.OK, BankAppResponseData(true, HttpStatusCode.OK.value, HttpStatusCode.OK.description, "Your userId is $userId")
+                )
         }
     }
 }

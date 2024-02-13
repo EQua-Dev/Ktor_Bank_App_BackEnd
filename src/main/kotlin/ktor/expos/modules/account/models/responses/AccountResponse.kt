@@ -1,4 +1,4 @@
-package ktor.expos.data.models.responses
+package ktor.expos.modules.account.models.responses
 
 import kotlinx.serialization.Serializable
 

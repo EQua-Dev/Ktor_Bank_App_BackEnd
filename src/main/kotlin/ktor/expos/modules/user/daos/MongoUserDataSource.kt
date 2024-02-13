@@ -1,5 +1,6 @@
-package ktor.expos.data.models.user_models
+package ktor.expos.modules.user.daos
 
+import ktor.expos.modules.user.models.responses.UserData
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
 

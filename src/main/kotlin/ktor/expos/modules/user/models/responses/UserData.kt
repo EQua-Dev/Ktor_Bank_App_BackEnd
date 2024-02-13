@@ -1,4 +1,4 @@
-package ktor.expos.data.models.user_models
+package ktor.expos.modules.user.models.responses
 
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId

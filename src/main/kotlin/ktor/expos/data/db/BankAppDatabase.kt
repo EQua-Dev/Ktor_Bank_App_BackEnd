@@ -1,6 +1,6 @@
 package ktor.expos.data.db
 
-import ktor.expos.data.models.user_models.MongoUserDataSource
+import ktor.expos.modules.user.daos.MongoUserDataSource
 import ktor.expos.utils.Constants.DB_NAME
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.reactivestreams.KMongo

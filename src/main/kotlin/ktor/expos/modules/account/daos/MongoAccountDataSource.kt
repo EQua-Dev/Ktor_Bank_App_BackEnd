@@ -1,7 +1,7 @@
-package ktor.expos.data.models.account_models
+package ktor.expos.modules.account.daos
 
-import ktor.expos.data.models.user_models.UserData
-import ktor.expos.utils.HelperFunctions.generateAccountNumber
+import ktor.expos.modules.user.models.responses.UserData
+import ktor.expos.modules.account.models.responses.AccountData
 import org.bson.types.ObjectId
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
@@ -26,5 +26,14 @@ class MongoAccountDataSource(db: CoroutineDatabase): AccountDataSource {
         }else{
             accounts.insertOne(accountData).wasAcknowledged()
         }
+    }
+
+    override suspend fun getAllMyAccounts(ownerId: String): List<AccountData> {
+        val userAccounts = accounts.find(AccountData::accountOwnerId eq ownerId).toList()
+      /*  val userMappedAccounts: MutableList<AccountDataResponse>
+        userAccounts.forEach { account ->
+            val newAccount = account.copy(accountId = account.)
+        }*/
+        return userAccounts
     }
 }
