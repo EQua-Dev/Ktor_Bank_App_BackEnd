@@ -19,8 +19,7 @@ import ktor.expos.utils.HelperFunctions
 * pass as arguments the interfaces of the related services as opposed to the implementation classes...
 * ...that way, if there is a change in the database used, the required services (interface) will remain unchanged
 * */
-
-class AccountRoutesImpl: AccountRoutes{
+ object AccountRoutesImpl: AccountRoutes{
     override fun Route.createAccount(
         accountDataSource: AccountDataSource
     ) {
@@ -29,6 +28,7 @@ class AccountRoutesImpl: AccountRoutes{
                 // Check if the request contains an authorization header with a bearer token
 
                 val userId = getUserIdFromToken(call)
+
 
                 val request = call.receiveOrNull<CreateAccountRequest>() ?: kotlin.run {
                     call.respond(HttpStatusCode.BadRequest, BankAppResponseData(
@@ -123,7 +123,25 @@ class AccountRoutesImpl: AccountRoutes{
     }
 
     override fun Route.getAccountInfoByAccountNumber(accountDataSource: AccountDataSource) {
+        authenticate {
+            get("find-account/{accountNumber}") {
+                // Check if the request contains an authorization header with a bearer token
 
+                val accountNumber = call.parameters["accountNumber"]
+
+                val userAccount = accountDataSource.getAccountInfoByAccountNumber(accountNumber!!)
+
+                userAccount?.let {account ->
+                    call.respond(
+                        HttpStatusCode.OK,
+                        BankAppResponseData(true, HttpStatusCode.OK.value, HttpStatusCode.OK.description, account)
+                    )
+                } ?: call.respond(
+                    HttpStatusCode.NotFound,
+                    BankAppResponseData(false, HttpStatusCode.NotFound.value, "No account found", it)
+                )
+            }
+        }
     }
 
 }

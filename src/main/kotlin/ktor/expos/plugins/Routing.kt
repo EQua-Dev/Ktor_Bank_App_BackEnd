@@ -3,9 +3,12 @@ package ktor.expos.plugins
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import ktor.expos.modules.account.daos.AccountDataSource
+import ktor.expos.modules.account.routes.AccountRoutes
+import ktor.expos.modules.account.routes.AccountRoutesImpl
+import ktor.expos.modules.account.routes.AccountRoutesImpl.createAccount
+import ktor.expos.modules.account.routes.AccountRoutesImpl.getAccountInfoByAccountNumber
+import ktor.expos.modules.account.routes.AccountRoutesImpl.getAllMyAccounts
 import ktor.expos.modules.user.daos.UserDataSource
-import ktor.expos.modules.account.routes.createAccount
-import ktor.expos.modules.account.routes.getMyAccounts
 import ktor.expos.modules.user.routes.authenticate
 import ktor.expos.modules.user.routes.getSecretInfo
 import ktor.expos.modules.user.routes.signIn
@@ -21,11 +24,13 @@ fun Application.configureRouting(
     tokenService: TokenService,
     tokenConfig: TokenConfig
 ) {
+
     routing {
         signIn(hashingService, userDataSource, tokenService, tokenConfig)
         signUp(hashingService, userDataSource)
         createAccount(accountDataSource)
-        getMyAccounts(accountDataSource)
+        getAllMyAccounts(accountDataSource)
+        getAccountInfoByAccountNumber(accountDataSource)
         authenticate()
         getSecretInfo()
     }

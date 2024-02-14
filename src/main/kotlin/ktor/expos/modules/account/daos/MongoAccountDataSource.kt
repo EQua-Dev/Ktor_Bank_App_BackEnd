@@ -41,7 +41,8 @@ class MongoAccountDataSource(db: CoroutineDatabase): AccountDataSource {
 
     override suspend fun getAccountInfoByAccountNumber(accountNumber: String): AccountInfoResponse {
         val searchedAccount = accounts.findOne(AccountData::accountNumber eq accountNumber)
-        val searchAccountOwner = users.findOneById( searchedAccount?.accountOwnerId!!)
+        val userObjectID = ObjectId(searchedAccount?.accountOwnerId!!)
+        val searchAccountOwner = users.findOneById(userObjectID)
         val returnedAccountOwner = UserInfo(
             userId = searchAccountOwner?.userId!!.toHexString(),
             userName = searchAccountOwner.userName
