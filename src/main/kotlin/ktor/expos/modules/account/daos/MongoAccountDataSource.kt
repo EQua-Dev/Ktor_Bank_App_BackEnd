@@ -2,6 +2,8 @@ package ktor.expos.modules.account.daos
 
 import ktor.expos.modules.user.models.responses.UserData
 import ktor.expos.modules.account.models.responses.AccountData
+import ktor.expos.modules.account.models.responses.AccountInfoResponse
+import ktor.expos.modules.user.models.responses.UserInfo
 import org.bson.types.ObjectId
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
@@ -35,5 +37,20 @@ class MongoAccountDataSource(db: CoroutineDatabase): AccountDataSource {
             val newAccount = account.copy(accountId = account.)
         }*/
         return userAccounts
+    }
+
+    override suspend fun getAccountsByAccountNumber(accountNumber: String): AccountInfoResponse {
+        val searchedAccount = accounts.findOne(AccountData::accountNumber eq accountNumber)
+        val searchAccountOwner = users.findOneById( searchedAccount?.accountOwnerId!!)
+        val returnedAccountOwner = UserInfo(
+            userId = searchAccountOwner?.userId!!.toHexString(),
+            userName = searchAccountOwner.userName
+        )
+        val returnedAccount = AccountInfoResponse(
+            account = searchedAccount,
+            accountOwner = returnedAccountOwner
+        )
+
+        return returnedAccount
     }
 }
