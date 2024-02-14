@@ -16,7 +16,7 @@ class MongoAccountDataSource(db: CoroutineDatabase): AccountDataSource {
         return accounts.findOne(AccountData::accountNumber eq accountNumber)
     }
 
-    override suspend fun insertAccount(accountData: AccountData): Boolean {
+    override suspend fun createAccount(accountData: AccountData): Boolean {
         //val userAccount = accounts.findOneById(accountData.accountId)
         //val accountExists = userAccount != null
 
@@ -39,7 +39,7 @@ class MongoAccountDataSource(db: CoroutineDatabase): AccountDataSource {
         return userAccounts
     }
 
-    override suspend fun getAccountsByAccountNumber(accountNumber: String): AccountInfoResponse {
+    override suspend fun getAccountInfoByAccountNumber(accountNumber: String): AccountInfoResponse {
         val searchedAccount = accounts.findOne(AccountData::accountNumber eq accountNumber)
         val searchAccountOwner = users.findOneById( searchedAccount?.accountOwnerId!!)
         val returnedAccountOwner = UserInfo(
