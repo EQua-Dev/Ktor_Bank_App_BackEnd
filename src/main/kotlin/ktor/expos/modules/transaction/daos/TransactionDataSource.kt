@@ -2,11 +2,12 @@ package ktor.expos.modules.transaction.daos
 
 import ktor.expos.modules.bank.models.requests.BankCommission
 import ktor.expos.modules.bank.models.responses.BankCommissionResponse
+import ktor.expos.modules.transaction.models.requests.Transaction
 
 interface TransactionDataSource {
-    //add transaction commission information
-    //get all transaction commission
+    //add transaction information
+    //get all transaction for account (whether the sender or the receiver)
 
-    suspend fun createCommission(bankCommission: BankCommission): Boolean
-    suspend fun getAllBankCommission(): BankCommissionResponse
+    suspend fun createTransaction(transaction: Transaction): Boolean
+    suspend fun getAllTransactionsOfAccount(accountNumber: String): List<Transaction>
 }

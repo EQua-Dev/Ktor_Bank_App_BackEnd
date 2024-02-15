@@ -8,6 +8,8 @@ import ktor.expos.modules.account.routes.AccountRoutesImpl
 import ktor.expos.modules.account.routes.AccountRoutesImpl.createAccount
 import ktor.expos.modules.account.routes.AccountRoutesImpl.getAccountInfoByAccountNumber
 import ktor.expos.modules.account.routes.AccountRoutesImpl.getAllMyAccounts
+import ktor.expos.modules.bank.daos.BankAccountDataSource
+import ktor.expos.modules.transaction.daos.TransactionDataSource
 import ktor.expos.modules.user.daos.UserDataSource
 import ktor.expos.modules.user.routes.authenticate
 import ktor.expos.modules.user.routes.getSecretInfo
@@ -20,6 +22,8 @@ import ktor.expos.security.token.TokenService
 fun Application.configureRouting(
     userDataSource: UserDataSource,
     accountDataSource: AccountDataSource,
+    bankAccountDataSource: BankAccountDataSource,
+    transactionDataSource: TransactionDataSource,
     hashingService: HashingService,
     tokenService: TokenService,
     tokenConfig: TokenConfig
@@ -28,7 +32,7 @@ fun Application.configureRouting(
     routing {
         signIn(hashingService, userDataSource, tokenService, tokenConfig)
         signUp(hashingService, userDataSource)
-        createAccount(accountDataSource)
+        createAccount(accountDataSource, bankAccountDataSource, transactionDataSource)
         getAllMyAccounts(accountDataSource)
         getAccountInfoByAccountNumber(accountDataSource)
         authenticate()

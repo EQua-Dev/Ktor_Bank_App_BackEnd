@@ -11,6 +11,10 @@ import ktor.expos.modules.account.models.responses.AccountData
 import ktor.expos.modules.account.daos.AccountDataSource
 import ktor.expos.modules.account.models.requests.CreateAccountRequest
 import ktor.expos.modules.account.models.responses.AccountDummyResponse
+import ktor.expos.modules.bank.daos.BankAccountDataSource
+import ktor.expos.modules.bank.models.requests.BankCommission
+import ktor.expos.modules.transaction.daos.TransactionDataSource
+import ktor.expos.modules.transaction.models.requests.Transaction
 import ktor.expos.services.ServiceHelpers.getUserIdFromToken
 import ktor.expos.utils.HelperFunctions
 import ktor.expos.utils.HelperFunctions.deductBankCommissionFromTransaction
@@ -22,7 +26,9 @@ import ktor.expos.utils.HelperFunctions.deductBankCommissionFromTransaction
 * */
  object AccountRoutesImpl: AccountRoutes{
     override fun Route.createAccount(
-        accountDataSource: AccountDataSource
+        accountDataSource: AccountDataSource,
+        bankAccountDataSource: BankAccountDataSource,
+        transactionDataSource: TransactionDataSource
     ) {
         authenticate {
             post("create-account") {
@@ -77,21 +83,36 @@ import ktor.expos.utils.HelperFunctions.deductBankCommissionFromTransaction
                     accountBalance = deductBankCommissionFromTransaction(request.initialDeposit),
                     accountNumber = accountNumber
                 )
-                application.log.info("deducted amount: ${deductBankCommissionFromTransaction(request.initialDeposit)}")
-                application.log.info("supposed deducted amount: ${account.accountBalance}")
-                application.log.info("created account: $account")
+                val transaction = Transaction(
+                    transactionAmount = account.accountBalance,
+                    transactionFrom = account.accountNumber,
+                    transactionNarration = "Account Opening",
+                    transactionDate = System.currentTimeMillis().toString(),
+                    transactionTo = "bank"
+                )
 
-                application.log.info("userId = ${account.accountOwnerId}")
-                val wasAcknowledged = accountDataSource.createAccount(account)
+                val commission = BankCommission(
+                    dateCreated = System.currentTimeMillis().toString(),
+                    transactionID = transaction.transactionID,
+                    amount = request.initialDeposit.times(0.01)
+                )
 
-                if (!wasAcknowledged) {
+                val wasAccountCreationAcknowledged = accountDataSource.createAccount(account)
+                val wasTransactionAcknowledged = transactionDataSource.createTransaction(transaction)
+                val wasCommissionAcknowledged = bankAccountDataSource.createCommission(commission)
+
+
+                //then write to the accounts table, the transactions table and the bank commission table
+
+
+                if (!wasAccountCreationAcknowledged || !wasTransactionAcknowledged || !wasCommissionAcknowledged) {
                     call.respond(
                         HttpStatusCode.Conflict,
                         BankAppResponseData(
                             false,
                             HttpStatusCode.Conflict.value,
                             HttpStatusCode.Conflict.description,
-                            "User does not exist"
+                            "Error creating account"
                         )
                     )
                     return@post

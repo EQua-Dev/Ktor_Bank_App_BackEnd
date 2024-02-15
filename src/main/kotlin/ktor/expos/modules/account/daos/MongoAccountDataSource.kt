@@ -23,11 +23,14 @@ class MongoAccountDataSource(db: CoroutineDatabase): AccountDataSource {
         val userExists = users.findOneById(ObjectId(accountData.accountOwnerId)) !=null
 
 
+
         return if (!userExists) {
             false
         }else{
             accounts.insertOne(accountData).wasAcknowledged()
         }
+
+
     }
 
     override suspend fun getAllMyAccounts(ownerId: String): List<AccountData> {
