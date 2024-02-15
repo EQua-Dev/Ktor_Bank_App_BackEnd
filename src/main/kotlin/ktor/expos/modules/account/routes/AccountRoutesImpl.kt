@@ -83,6 +83,7 @@ import ktor.expos.utils.HelperFunctions.deductBankCommissionFromTransaction
 
                 application.log.info("userId = ${account.accountOwnerId}")
                 val wasAcknowledged = accountDataSource.createAccount(account)
+
                 if (!wasAcknowledged) {
                     call.respond(
                         HttpStatusCode.Conflict,
