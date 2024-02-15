@@ -11,4 +11,9 @@ object HelperFunctions {
         return randomNumber.toString()
 
     }
+
+    fun deductBankCommissionFromTransaction(amountDeposited: Double): Double{
+        val onePercentOfAmount = amountDeposited * (1 / 100)
+        return amountDeposited - onePercentOfAmount
+    }
 }

@@ -8,7 +8,7 @@ import ktor.expos.modules.user.models.responses.UserInfo
 data class AccountDummyResponse(
     val userId: String,
     val accountNumber: String,
-    val accountBalance: String
+    val accountBalance: Double
 )
 
 @Serializable

@@ -13,6 +13,7 @@ import ktor.expos.modules.account.models.requests.CreateAccountRequest
 import ktor.expos.modules.account.models.responses.AccountDummyResponse
 import ktor.expos.services.ServiceHelpers.getUserIdFromToken
 import ktor.expos.utils.HelperFunctions
+import ktor.expos.utils.HelperFunctions.deductBankCommissionFromTransaction
 
 /*
 * The route extension file to sign up users
@@ -42,6 +43,7 @@ import ktor.expos.utils.HelperFunctions
 
                 val areFieldsBlank = request.accountType.isBlank()
                 //you could also run other validation checks here
+                val minimumDepositAmountNotEnough = request.initialDeposit < 100.0
 
                 if (areFieldsBlank) {
                     call.respond(HttpStatusCode.Conflict, BankAppResponseData(
@@ -52,13 +54,27 @@ import ktor.expos.utils.HelperFunctions
                     ))
                     return@post
                 }
+
+                if (minimumDepositAmountNotEnough){
+                    call.respond(HttpStatusCode.Conflict, BankAppResponseData(
+                        false,
+                        HttpStatusCode.Conflict.value,
+                        HttpStatusCode.Conflict.description,
+                        "Minimum of ₦100 must be deposited at account creation"
+                    ))
+                    return@post
+                }
+
+                //bank takes 1% of every transaction deposit
+
+
                 //generate the account number here
                 val accountNumber = HelperFunctions.generateAccountNumber()
                 val account = AccountData(
                     accountType = request.accountType,
                     accountOwnerId = userId,
                     dateCreated = System.currentTimeMillis().toString(),
-                    accountBalance = "0.0",
+                    accountBalance = deductBankCommissionFromTransaction(request.initialDeposit),
                     accountNumber = accountNumber
                 )
 

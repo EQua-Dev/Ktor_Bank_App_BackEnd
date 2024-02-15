@@ -11,7 +11,7 @@ data class AccountData(
     val accountType: String,
     val accountOwnerId: String,
     var accountNumber: String,
-    val accountBalance: String,
+    val accountBalance: Double,
     val dateCreated: String
 )
 
