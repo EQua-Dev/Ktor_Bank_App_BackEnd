@@ -77,6 +77,9 @@ import ktor.expos.utils.HelperFunctions.deductBankCommissionFromTransaction
                     accountBalance = deductBankCommissionFromTransaction(request.initialDeposit),
                     accountNumber = accountNumber
                 )
+                application.log.info("deducted amount: ${deductBankCommissionFromTransaction(request.initialDeposit)}")
+                application.log.info("supposed deducted amount: ${account.accountBalance}")
+                application.log.info("created account: $account")
 
                 application.log.info("userId = ${account.accountOwnerId}")
                 val wasAcknowledged = accountDataSource.createAccount(account)

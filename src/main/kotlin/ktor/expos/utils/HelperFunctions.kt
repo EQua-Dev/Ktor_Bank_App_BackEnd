@@ -13,7 +13,7 @@ object HelperFunctions {
     }
 
     fun deductBankCommissionFromTransaction(amountDeposited: Double): Double{
-        val onePercentOfAmount = amountDeposited * (1 / 100)
-        return amountDeposited - onePercentOfAmount
+        val onePercentOfAmount = amountDeposited.times(0.01)
+        return amountDeposited.minus(onePercentOfAmount)
     }
 }
