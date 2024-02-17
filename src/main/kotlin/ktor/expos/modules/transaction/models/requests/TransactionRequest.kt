@@ -18,3 +18,11 @@ data class Transaction(
     val transactionNarration: String,
     val transactionDate: String
     )
+
+@Serializable
+data class TransactionRequest(
+    val transactionTo: String, //account receiving the money
+    val transactionAmount: Double,
+    val transactionNarration: String,
+    val transactionDate: String
+    )

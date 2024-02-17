@@ -10,6 +10,7 @@ import ktor.expos.modules.account.routes.AccountRoutesImpl.getAccountInfoByAccou
 import ktor.expos.modules.account.routes.AccountRoutesImpl.getAllMyAccounts
 import ktor.expos.modules.bank.daos.BankAccountDataSource
 import ktor.expos.modules.transaction.daos.TransactionDataSource
+import ktor.expos.modules.transaction.routes.TransactionRoutesImpl.transferFunds
 import ktor.expos.modules.user.daos.UserDataSource
 import ktor.expos.modules.user.routes.authenticate
 import ktor.expos.modules.user.routes.getSecretInfo
@@ -35,6 +36,7 @@ fun Application.configureRouting(
         createAccount(accountDataSource, bankAccountDataSource, transactionDataSource)
         getAllMyAccounts(accountDataSource)
         getAccountInfoByAccountNumber(accountDataSource)
+        transferFunds(accountDataSource, bankAccountDataSource, transactionDataSource)
         authenticate()
         getSecretInfo()
     }

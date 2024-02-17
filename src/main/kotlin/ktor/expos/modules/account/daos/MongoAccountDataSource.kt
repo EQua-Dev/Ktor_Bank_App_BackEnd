@@ -7,6 +7,7 @@ import ktor.expos.modules.user.models.responses.UserInfo
 import org.bson.types.ObjectId
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
+import org.litote.kmongo.setValue
 
 class MongoAccountDataSource(db: CoroutineDatabase): AccountDataSource {
     private val accounts = db.getCollection<AccountData>()
@@ -56,5 +57,15 @@ class MongoAccountDataSource(db: CoroutineDatabase): AccountDataSource {
         )
 
         return returnedAccount
+    }
+
+    override suspend fun updateAccountBalance(accountNumber: String, newAmount: Double): Boolean {
+        val account = accounts.findOne(AccountData::accountNumber eq accountNumber)
+
+        return if (account == null){
+            false
+        }else{
+            accounts.updateOne(AccountData::accountNumber eq accountNumber, setValue(AccountData::accountBalance, newAmount)).wasAcknowledged()
+        }
     }
 }

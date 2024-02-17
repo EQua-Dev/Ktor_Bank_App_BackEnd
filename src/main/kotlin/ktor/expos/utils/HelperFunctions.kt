@@ -16,4 +16,8 @@ object HelperFunctions {
         val onePercentOfAmount = amountDeposited.times(0.01)
         return amountDeposited.minus(onePercentOfAmount)
     }
+
+    fun onePercentOfAmount(amount: Double): Double{
+        return amount.times(0.01)
+    }
 }
