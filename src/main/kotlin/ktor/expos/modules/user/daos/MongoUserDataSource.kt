@@ -1,6 +1,7 @@
 package ktor.expos.modules.user.daos
 
 import ktor.expos.modules.user.models.responses.UserData
+import org.bson.types.ObjectId
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
 
@@ -10,6 +11,12 @@ class MongoUserDataSource(db: CoroutineDatabase) : UserDataSource {
     override suspend fun getUserByUsername(username: String): UserData? {
         //get the user whose username matches the passed username
         return users.findOne(UserData::userName eq username)
+    }
+
+    override suspend fun getUserByUserId(userId: String): UserData? {
+        val userObjectID = ObjectId(userId)
+
+        return users.findOneById(userObjectID)
     }
 
     override suspend fun insertUser(user: UserData): Boolean {

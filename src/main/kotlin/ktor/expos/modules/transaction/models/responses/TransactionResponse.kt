@@ -8,6 +8,7 @@ package ktor.expos.modules.transaction.models.responses
 import kotlinx.serialization.Serializable
 import ktor.expos.modules.account.models.responses.AccountData
 import org.bson.codecs.pojo.annotations.BsonId
+import org.bson.codecs.pojo.annotations.BsonProperty
 
 @Serializable
 data class TransactionResponse(
@@ -15,6 +16,6 @@ data class TransactionResponse(
     var transactionTime: String,
     val transactionAmount: Double,
     val transactionNarration: String,
-    val transactionReceiver: AccountData,
-    val transactionSender: AccountData
+    @field:BsonProperty(useDiscriminator = true) val transactionReceiver: AccountData,
+    @field:BsonProperty(useDiscriminator = true) val transactionSender: AccountData
 )

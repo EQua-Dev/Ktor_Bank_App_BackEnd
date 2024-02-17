@@ -1,5 +1,6 @@
 package ktor.expos.modules.account.daos
 
+import com.mongodb.client.model.Filters
 import ktor.expos.modules.user.models.responses.UserData
 import ktor.expos.modules.account.models.responses.AccountData
 import ktor.expos.modules.account.models.responses.AccountInfoResponse
@@ -21,7 +22,7 @@ class MongoAccountDataSource(db: CoroutineDatabase): AccountDataSource {
         //val userAccount = accounts.findOneById(accountData.accountId)
         //val accountExists = userAccount != null
 
-        val userExists = users.findOneById(ObjectId(accountData.accountOwnerId)) !=null
+        val userExists = users.findOneById(ObjectId(accountData.accountOwnerId.userId)) !=null
 
 
 
@@ -35,7 +36,7 @@ class MongoAccountDataSource(db: CoroutineDatabase): AccountDataSource {
     }
 
     override suspend fun getAllMyAccounts(ownerId: String): List<AccountData> {
-        val userAccounts = accounts.find(AccountData::accountOwnerId eq ownerId).toList()
+        val userAccounts = accounts.find(Filters.eq("accountOwnerId.userId", ownerId)).toList()
       /*  val userMappedAccounts: MutableList<AccountDataResponse>
         userAccounts.forEach { account ->
             val newAccount = account.copy(accountId = account.)
@@ -45,7 +46,7 @@ class MongoAccountDataSource(db: CoroutineDatabase): AccountDataSource {
 
     override suspend fun getAccountInfoByAccountNumber(accountNumber: String): AccountInfoResponse {
         val searchedAccount = accounts.findOne(AccountData::accountNumber eq accountNumber)
-        val userObjectID = ObjectId(searchedAccount?.accountOwnerId!!)
+        val userObjectID = ObjectId(searchedAccount?.accountOwnerId!!.userId)
         val searchAccountOwner = users.findOneById(userObjectID)
         val returnedAccountOwner = UserInfo(
             userId = searchAccountOwner?.userId!!.toHexString(),

@@ -11,6 +11,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.pipeline.*
 import ktor.expos.data.models.BankAppResponseData
 import ktor.expos.modules.account.daos.AccountDataSource
 import ktor.expos.modules.bank.daos.BankAccountDataSource
@@ -36,6 +37,8 @@ object TransactionRoutesImpl : TransactionRoutes {
                 //subtract the balance of the sender account including the 1% commission
                 //add the balance to the receiver account
 
+                val requiredBodyType = TransactionRequest::class
+
                 val userId = ServiceHelpers.getUserIdFromToken(call)
                 val senderAccountNumber = call.parameters["ownerAccount"]
                 val senderAccount = accountDataSource.getAccountByAccountNumber(senderAccountNumber!!)
@@ -54,6 +57,8 @@ object TransactionRoutesImpl : TransactionRoutes {
                     return@post
                 }
 
+
+
                 if (senderAccount == null) {
                     call.respond(
                         HttpStatusCode.Conflict, BankAppResponseData(
@@ -66,7 +71,7 @@ object TransactionRoutesImpl : TransactionRoutes {
                     return@post
                 }
 
-                if (userId != senderAccount.accountOwnerId) {
+                if (userId != senderAccount.accountOwnerId.userId) {
                     call.respond(
                         HttpStatusCode.Unauthorized, BankAppResponseData(
                             false,
@@ -139,10 +144,10 @@ object TransactionRoutesImpl : TransactionRoutes {
                 //write to the sender account, the receiver account, the transactions table and the bank commission table
                 val transaction = Transaction(
                     transactionAmount = request.transactionAmount,
-                    transactionFrom = senderAccountNumber,
+                    transactionFrom = senderAccount,
                     transactionNarration = request.transactionNarration,
                     transactionDate = System.currentTimeMillis().toString(),
-                    transactionTo = receiverAccount.accountNumber
+                    transactionTo = receiverAccount
                 )
 
                 val commission = BankCommission(
@@ -183,6 +188,34 @@ object TransactionRoutesImpl : TransactionRoutes {
                 call.respond(
                     HttpStatusCode.OK,
                     BankAppResponseData(true, HttpStatusCode.OK.value, HttpStatusCode.OK.description, transactionReceipt)
+                )
+            }
+        }
+    }
+
+    override fun Route.getTransferHistory(
+        accountDataSource: AccountDataSource,
+        transactionDataSource: TransactionDataSource
+    ) {
+        authenticate { 
+            get("my-transfer-history"){
+                val userId = ServiceHelpers.getUserIdFromToken(call)
+
+                val myTransactions = transactionDataSource.getAllTransactionsOfUser(userId)
+
+                application.log.info("userId: $userId")
+
+                myTransactions?.let {transactions ->
+                    call.respond(
+                        HttpStatusCode.OK,
+                        BankAppResponseData(true, HttpStatusCode.OK.value, HttpStatusCode.OK.description, transactions)
+
+                    )
+                } ?: call.respond(
+                    HttpStatusCode.NotFound,
+                    BankAppResponseData(false, HttpStatusCode.NotFound.value, "No transactions found", it)
+
+
                 )
             }
         }

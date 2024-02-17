@@ -17,4 +17,8 @@ interface TransactionRoutes {
                             bankAccountDataSource: BankAccountDataSource,
                             transactionDataSource: TransactionDataSource
     )
+    fun Route.getTransferHistory(accountDataSource: AccountDataSource,
+                            transactionDataSource: TransactionDataSource
+    )
+
 }

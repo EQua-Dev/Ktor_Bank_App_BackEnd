@@ -15,6 +15,8 @@ import ktor.expos.modules.bank.daos.BankAccountDataSource
 import ktor.expos.modules.bank.models.requests.BankCommission
 import ktor.expos.modules.transaction.daos.TransactionDataSource
 import ktor.expos.modules.transaction.models.requests.Transaction
+import ktor.expos.modules.user.daos.UserDataSource
+import ktor.expos.modules.user.models.responses.UserInfo
 import ktor.expos.services.ServiceHelpers.getUserIdFromToken
 import ktor.expos.utils.HelperFunctions
 import ktor.expos.utils.HelperFunctions.deductBankCommissionFromTransaction
@@ -28,13 +30,17 @@ import ktor.expos.utils.HelperFunctions.deductBankCommissionFromTransaction
     override fun Route.createAccount(
         accountDataSource: AccountDataSource,
         bankAccountDataSource: BankAccountDataSource,
-        transactionDataSource: TransactionDataSource
+        transactionDataSource: TransactionDataSource,
+        userDataSource: UserDataSource
     ) {
         authenticate {
             post("create-account") {
                 // Check if the request contains an authorization header with a bearer token
 
                 val userId = getUserIdFromToken(call)
+                val userAccount = userDataSource.getUserByUserId(userId)
+                val userExists = userAccount != null
+
 
 
                 val request = call.receiveOrNull<CreateAccountRequest>() ?: kotlin.run {
@@ -46,6 +52,23 @@ import ktor.expos.utils.HelperFunctions.deductBankCommissionFromTransaction
                     ))
                     return@post
                 }
+
+
+                if (!userExists) {
+                    call.respond(HttpStatusCode.NotFound, BankAppResponseData(
+                        false,
+                        HttpStatusCode.NotFound.value,
+                        HttpStatusCode.NotFound.description,
+                        "User not found"
+                    ))
+                    return@post
+                }
+
+                val userAccountInfo = UserInfo(
+                    userId = userId,
+                    userName = userAccount?.userName!!
+                )
+
 
                 val areFieldsBlank = request.accountType.isBlank()
                 //you could also run other validation checks here
@@ -74,21 +97,22 @@ import ktor.expos.utils.HelperFunctions.deductBankCommissionFromTransaction
                 //bank takes 1% of every transaction deposit
 
 
+
                 //generate the account number here
                 val accountNumber = HelperFunctions.generateAccountNumber()
                 val account = AccountData(
                     accountType = request.accountType,
-                    accountOwnerId = userId,
+                    accountOwnerId = userAccountInfo,
                     dateCreated = System.currentTimeMillis().toString(),
                     accountBalance = deductBankCommissionFromTransaction(request.initialDeposit),
                     accountNumber = accountNumber
                 )
                 val transaction = Transaction(
                     transactionAmount = account.accountBalance,
-                    transactionFrom = account.accountNumber,
+                    transactionFrom = account,
                     transactionNarration = "Account Opening",
                     transactionDate = System.currentTimeMillis().toString(),
-                    transactionTo = "bank"
+                    transactionTo = null
                 )
 
                 val commission = BankCommission(

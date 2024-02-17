@@ -1,6 +1,7 @@
 package ktor.expos.modules.transaction.daos
 
 import com.mongodb.client.model.Filters
+import ktor.expos.modules.account.models.responses.AccountData
 import ktor.expos.modules.user.models.responses.UserData
 import ktor.expos.modules.bank.models.requests.BankCommission
 import ktor.expos.modules.bank.models.responses.BankCommissionResponse
@@ -14,10 +15,15 @@ class MongoTransactionDataSource(db: CoroutineDatabase): TransactionDataSource {
         return transactions.insertOne(transaction).wasAcknowledged()
     }
 
-    override suspend fun getAllTransactionsOfAccount(accountNumber: String): List<Transaction> {
+    override suspend fun getAllTransactionsOfUser(userId: String): List<Transaction> {
+        /*val transactionsFilter = Filters.or(
+            Filters.eq(Transaction::transactionFrom /AccountData::accountOwnerId / UserData::userId.name, userId),
+            Filters.eq(Transaction::transactionTo / AccountData::accountOwnerId / UserData::userId.name, userId),
+        )*/
+
         val transactionsFilter = Filters.or(
-            Filters.eq(Transaction::transactionFrom.name, accountNumber),
-            Filters.eq(Transaction::transactionTo.name, accountNumber),
+            Filters.eq("transactionFrom.accountOwnerId.userId", userId),
+            Filters.eq("transactionTo.accountOwnerId.userId", userId),
         )
         val transactions = transactions.find(transactionsFilter).toList()
 
